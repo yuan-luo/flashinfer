@@ -127,6 +127,13 @@ Debug environment options:
 """
 
 
+def _nvvm_elect_sync_bool(*, loc=None, ip=None):
+    try:
+        return _nvvm_d.elect_sync(loc=loc, ip=ip)
+    except TypeError:
+        return _nvvm_d.elect_sync(_T.bool(), loc=loc, ip=ip)
+
+
 @_dsl_user_op
 def _tma_load_ab_nvvm_no_mcast(
     k_coord: _Int32,
@@ -160,7 +167,7 @@ def _tma_load_ab_nvvm_no_mcast(
     desc_a_llvm = desc_a.llvm_ptr
     desc_b_llvm = desc_b.llvm_ptr
     # TMA A: elect one thread and issue the load with predicate.
-    is_elected_a = _nvvm_d.elect_sync(_T.bool(), loc=loc, ip=ip)
+    is_elected_a = _nvvm_elect_sync_bool(loc=loc, ip=ip)
     _nvvm_d.CpAsyncBulkTensorGlobalToSharedClusterOp(
         dstMem=smem_a_llvm,
         tmaDescriptor=desc_a_llvm,
@@ -177,7 +184,7 @@ def _tma_load_ab_nvvm_no_mcast(
         ip=ip,
     )
     # TMA B: elect one thread and issue the load with predicate.
-    is_elected_b = _nvvm_d.elect_sync(_T.bool(), loc=loc, ip=ip)
+    is_elected_b = _nvvm_elect_sync_bool(loc=loc, ip=ip)
     _nvvm_d.CpAsyncBulkTensorGlobalToSharedClusterOp(
         dstMem=smem_b_llvm,
         tmaDescriptor=desc_b_llvm,
@@ -210,7 +217,7 @@ def _tma_load_b_nvvm_no_mcast(
     smem_b_llvm = smem_b.llvm_ptr
     mbar_llvm = mbar.llvm_ptr
     desc_b_llvm = desc_b.llvm_ptr
-    is_elected_b = _nvvm_d.elect_sync(_T.bool(), loc=loc, ip=ip)
+    is_elected_b = _nvvm_elect_sync_bool(loc=loc, ip=ip)
     _nvvm_d.CpAsyncBulkTensorGlobalToSharedClusterOp(
         dstMem=smem_b_llvm,
         tmaDescriptor=desc_b_llvm,
